@@ -1,7 +1,11 @@
 package run.halo.app.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -13,6 +17,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import run.halo.app.event.logger.LogEvent;
@@ -21,9 +26,7 @@ import run.halo.app.exception.NotFoundException;
 import run.halo.app.model.dto.post.BasePostMinimalDTO;
 import run.halo.app.model.dto.post.BasePostSimpleDTO;
 import run.halo.app.model.entity.*;
-import run.halo.app.model.enums.LogType;
-import run.halo.app.model.enums.PostPermalinkType;
-import run.halo.app.model.enums.PostStatus;
+import run.halo.app.model.enums.*;
 import run.halo.app.model.params.PostParam;
 import run.halo.app.model.params.PostQuery;
 import run.halo.app.model.properties.PostProperties;
@@ -40,6 +43,10 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,9 +72,14 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
     private final CategoryService categoryService;
 
+
+    private final SpecialService specialService;
+
     private final PostTagService postTagService;
 
     private final PostCategoryService postCategoryService;
+
+    private final PostSpecialService postSpecialService;
 
     private final PostCommentService postCommentService;
 
@@ -82,21 +94,24 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                            PostRepository postRepository,
                            TagService tagService,
                            CategoryService categoryService,
-                           PostTagService postTagService,
+                           SpecialService specialService, PostTagService postTagService,
                            PostCategoryService postCategoryService,
-                           PostCommentService postCommentService,
+                           PostSpecialService postSpecialService, PostCommentService postCommentService,
                            ApplicationEventPublisher eventPublisher,
-                           PostMetaService postMetaService) {
+                           PostMetaService postMetaService, MenuService menuService) {
         super(basePostRepository, optionService);
         this.postRepository = postRepository;
         this.tagService = tagService;
         this.categoryService = categoryService;
+        this.specialService = specialService;
         this.postTagService = postTagService;
         this.postCategoryService = postCategoryService;
+        this.postSpecialService = postSpecialService;
         this.postCommentService = postCommentService;
         this.eventPublisher = eventPublisher;
         this.postMetaService = postMetaService;
         this.optionService = optionService;
+        this.menuService = menuService;
     }
 
     @Override
@@ -123,9 +138,9 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
     @Override
     @Transactional
-    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds,
+    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<Integer> specialIds,
                                  Set<PostMeta> metas, boolean autoSave) {
-        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, metas);
+        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, specialIds, metas);
         if (!autoSave) {
             // Log the creation
             LogEvent logEvent = new LogEvent(this, createdPost.getId().toString(),
@@ -136,9 +151,9 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     }
 
     @Override
-    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds,
+    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<Integer> specialIds,
                                  boolean autoSave) {
-        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, null);
+        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, specialIds, null);
         if (!autoSave) {
             // Log the creation
             LogEvent logEvent = new LogEvent(this, createdPost.getId().toString(),
@@ -151,10 +166,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     @Override
     @Transactional
     public PostDetailVO updateBy(Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds,
-                                 Set<PostMeta> metas, boolean autoSave) {
+                                 Set<Integer> specialIds, Set<PostMeta> metas, boolean autoSave) {
         // Set edit time
         postToUpdate.setEditTime(DateUtils.now());
-        PostDetailVO updatedPost = createOrUpdate(postToUpdate, tagIds, categoryIds, metas);
+        PostDetailVO updatedPost = createOrUpdate(postToUpdate, tagIds, categoryIds, specialIds, metas);
         if (!autoSave) {
             // Log the creation
             LogEvent logEvent = new LogEvent(this, updatedPost.getId().toString(),
@@ -168,6 +183,8 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     public Post getBy(PostStatus status, String slug) {
         return super.getBy(status, slug);
     }
+
+
 
     @Override
     public Post getBy(Integer year, Integer month, String slug) {
@@ -327,6 +344,8 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
         Set<Integer> categoryIds = new HashSet<>();
 
+        Set<Integer> specialIds = new HashSet<>();
+
         if (frontMatter.size() > 0) {
             for (String key : frontMatter.keySet()) {
                 elementValue = frontMatter.get(key);
@@ -371,6 +390,17 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                             }
                             categoryIds.add(category.getId());
                             break;
+                        case "specialIds":
+                            Special special = specialService.getByName(ele);
+                            if (null == special) {
+                                special = new Special();
+                                special.setName(ele);
+                                special.setSlug(SlugUtils.slug(ele));
+                                special.setDescription(ele);
+                                special = specialService.create(special);
+                            }
+                            specialIds.add(special.getId());
+                            break;
                         default:
                             break;
                     }
@@ -392,7 +422,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
         post.setOriginalContent(markdown);
 
-        return createBy(post.convertTo(), tagIds, categoryIds, false);
+        return createBy(post.convertTo(), tagIds, categoryIds, specialIds, false);
     }
 
     @Override
@@ -456,10 +486,12 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         List<Tag> tags = postTagService.listTagsBy(post.getId());
         // List categories
         List<Category> categories = postCategoryService.listCategoriesBy(post.getId());
+        // List Specials
+        List<Special> specials = postSpecialService.listSpecialsBy(post.getId());
         // List metas
         List<PostMeta> metas = postMetaService.listBy(post.getId());
         // Convert to detail vo
-        return convertTo(post, tags, categories, metas);
+        return convertTo(post, tags, categories, specials, metas);
     }
 
     @Override
@@ -510,6 +542,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         Map<Integer, List<Category>> categoryListMap = postCategoryService
             .listCategoryListMap(postIds);
 
+        // Get special list map
+        Map<Integer, List<Special>> specialListMap = postSpecialService
+            .listSpecialListMap(postIds);
+
         // Get comment count
         Map<Integer, Long> commentCountMap = postCommentService.countByPostIds(postIds);
 
@@ -541,6 +577,14 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                 .map(categoryService::convertTo)
                 .collect(Collectors.toList()));
 
+            // Set special
+            postListVO.setSpecials(Optional.ofNullable(specialListMap.get(post.getId()))
+                .orElseGet(LinkedList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(specialService::convertTo)
+                .collect(Collectors.toList()));
+
             // Set post metas
             List<PostMeta> metas = Optional.ofNullable(postMetaListMap.get(post.getId()))
                 .orElseGet(LinkedList::new);
@@ -567,6 +611,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         // Get category list map
         Map<Integer, List<Category>> categoryListMap = postCategoryService
             .listCategoryListMap(postIds);
+
+        // Get special list map
+        Map<Integer, List<Special>> specialListMap = postSpecialService
+            .listSpecialListMap(postIds);
 
         // Get comment count
         Map<Integer, Long> commentCountMap = postCommentService.countByPostIds(postIds);
@@ -597,6 +645,14 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                 .stream()
                 .filter(Objects::nonNull)
                 .map(categoryService::convertTo)
+                .collect(Collectors.toList()));
+
+            // Set special
+            postListVO.setSpecials(Optional.ofNullable(specialListMap.get(post.getId()))
+                .orElseGet(LinkedList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(specialService::convertTo)
                 .collect(Collectors.toList()));
 
             // Set post metas
@@ -667,7 +723,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
      */
     @NonNull
     private PostDetailVO convertTo(@NonNull Post post, @Nullable List<Tag> tags,
-                                   @Nullable List<Category> categories, List<PostMeta> postMetaList) {
+                                   @Nullable List<Category> categories, @Nullable List<Special> specials, List<PostMeta> postMetaList) {
         Assert.notNull(post, "Post must not be null");
 
         // Convert to base detail vo
@@ -680,6 +736,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         // Extract ids
         Set<Integer> tagIds = ServiceUtils.fetchProperty(tags, Tag::getId);
         Set<Integer> categoryIds = ServiceUtils.fetchProperty(categories, Category::getId);
+        Set<Integer> specialIds = ServiceUtils.fetchProperty(specials, Special::getId);
         Set<Long> metaIds = ServiceUtils.fetchProperty(postMetaList, PostMeta::getId);
 
         // Get post tag ids
@@ -689,6 +746,11 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         // Get post category ids
         postDetailVO.setCategoryIds(categoryIds);
         postDetailVO.setCategories(categoryService.convertTo(categories));
+
+
+        // Get post special ids
+        postDetailVO.setSpecialIds(specialIds);
+        postDetailVO.setSpecials(specialService.convertTo(specials));
 
         // Get post meta ids
         postDetailVO.setMetaIds(metaIds);
@@ -729,6 +791,17 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                 predicates.add(criteriaBuilder.exists(postSubquery));
             }
 
+            if (postQuery.getSpecialId() != null) {
+                Subquery<Post> postSubquery = query.subquery(Post.class);
+                Root<PostSpecial> postSpecialRoot = postSubquery.from(PostSpecial.class);
+                postSubquery.select(postSpecialRoot.get("postId"));
+                postSubquery.where(
+                    criteriaBuilder.equal(root.get("id"), postSpecialRoot.get("postId")),
+                    criteriaBuilder.equal(postSpecialRoot.get("specialId"),
+                        postQuery.getSpecialId()));
+                predicates.add(criteriaBuilder.exists(postSubquery));
+            }
+
             if (postQuery.getKeyword() != null) {
                 // Format like condition
                 String likeCondition = String
@@ -747,7 +820,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     }
 
     private PostDetailVO createOrUpdate(@NonNull Post post, Set<Integer> tagIds,
-                                        Set<Integer> categoryIds, Set<PostMeta> metas) {
+                                        Set<Integer> categoryIds, Set<Integer> specialIds, Set<PostMeta> metas) {
         Assert.notNull(post, "Post param must not be null");
 
         // Create or update post
@@ -763,6 +836,9 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         // List all categories
         List<Category> categories = categoryService.listAllByIds(categoryIds);
 
+        // List all specials
+        List<Special> specials = specialService.listAllByIds(specialIds);
+
         // Create post tags
         List<PostTag> postTags = postTagService.mergeOrCreateByIfAbsent(post.getId(),
             ServiceUtils.fetchProperty(tags, Tag::getId));
@@ -774,7 +850,14 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
             .mergeOrCreateByIfAbsent(post.getId(),
                 ServiceUtils.fetchProperty(categories, Category::getId));
 
+        // Create post specials
+        List<PostSpecial> postSpecials = postSpecialService
+            .mergeOrCreateByIfAbsent(post.getId(),
+                ServiceUtils.fetchProperty(specials, Special::getId));
+
         log.debug("Created post categories: [{}]", postCategories);
+
+        log.debug("Created post specials: [{}]", postSpecials);
 
         // Create post meta data
         List<PostMeta> postMetaList = postMetaService
@@ -782,7 +865,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         log.debug("Created post metas: [{}]", postMetaList);
 
         // Convert to post detail vo
-        return convertTo(post, tags, categories, postMetaList);
+        return convertTo(post, tags, categories, specials, postMetaList);
     }
 
     @Override
@@ -912,5 +995,101 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                 .append(pathSuffix);
         }
         return fullPath.toString();
+    }
+
+    private final MenuService menuService;
+
+    public void genPostHtml(String slug) {
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("blog_logo", "https://pic.cnblogs.com/avatar/1580998/20191105112733.png");
+        map.put("blog_title", "xxxxxsa大大色的啊我");
+        //查询所有菜单
+        map.put("menus", menuService.listAll());
+        //archive page most likes post
+        List<PostListVO> mostLikes = this.convertToListVo(this.listMostLike(PostNum.INDEX));
+        //archive page most visit post
+        List<PostListVO> mostVisits = this.convertToListVo(this.listMostVisit(PostNum.INDEX));
+        map.put("mostVisits", mostLikes);
+        map.put("mostLikes", mostVisits);
+
+        Post post = this.getBySlug(slug);
+        post = this.getBy(PostStatus.PUBLISHED, post.getSlug());
+
+        this.publishVisitEvent(post.getId());
+
+        AdjacentPostVO adjacentPostVO = this.getAdjacentPosts(post);
+        adjacentPostVO.getOptionalPrevPost().ifPresent(prevPost -> map.put("prevPost", this.convertToDetailVo(prevPost)));
+        adjacentPostVO.getOptionalNextPost().ifPresent(nextPost -> map.put("nextPost", this.convertToDetailVo(nextPost)));
+
+        List<Category> categories = postCategoryService.listCategoriesBy(post.getId());
+        List<Special> specials = postSpecialService.listSpecialsBy(post.getId());
+        List<Tag> tags = postTagService.listTagsBy(post.getId());
+        List<PostMeta> metas = postMetaService.listBy(post.getId());
+
+        // Generate meta keywords.
+        if (StringUtils.isNotEmpty(post.getMetaKeywords())) {
+            map.put("meta_keywords", post.getMetaKeywords());
+        } else {
+            map.put("meta_keywords", tags.stream().map(Tag::getName).collect(Collectors.joining(",")));
+        }
+
+        // Generate meta description.
+        if (StringUtils.isNotEmpty(post.getMetaDescription())) {
+            map.put("meta_description", post.getMetaDescription());
+        } else {
+            map.put("meta_description", this.generateDescription(post.getFormatContent()));
+        }
+
+
+        map.put("is_post", true);
+        map.put("post", this.convertToDetailVo(post));
+        map.put("mostLikes", mostLikes);
+        map.put("mostVisits", mostVisits);
+        map.put("categories", categoryService.convertTo(categories));
+        map.put("specials", specialService.convertTo(specials));
+        map.put("tags", tagService.convertTo(tags));
+        map.put("metas", postMetaService.convertToMap(metas));
+
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("google_color", "#fff");
+        map.put("settings", map1);
+
+        Map<String, Object> map2 = new HashMap<>();
+        map1.put("nickname", "娃大撒打算");
+        map.put("user", map1);
+
+        map.put("theme_base", "http://ifuntools.cn");
+
+        Map<String, Object> map3 = new HashMap<>();
+        map1.put("google_color", "#fff");
+        map.put("settings", map1);
+
+
+        try {
+            //创建配置类
+            Configuration configuration = new Configuration(Configuration.getVersion());
+            //设置模板路径
+            configuration.setDirectoryForTemplateLoading(new File("/Users/lau52y/halo-dev/templates/themes/ifuntools"));
+            //设置字符集
+            configuration.setDefaultEncoding("UTF‐8");
+            //加载模板
+            Template template = configuration.getTemplate("genPosthtml.ftl");
+            //数据模型
+
+            //静态化
+            String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
+            //静态化内容
+            System.out.println(content);
+            InputStream inputStream = IOUtils.toInputStream(content);
+            //输出文件
+            FileOutputStream fileOutputStream = new FileOutputStream(new File("/Users/lau52y/halo-dev/templates/themes/ifuntools/" + slug + ".html"));
+            int copy = IOUtils.copy(inputStream, fileOutputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TemplateException e) {
+            e.printStackTrace();
+        }
+
     }
 }

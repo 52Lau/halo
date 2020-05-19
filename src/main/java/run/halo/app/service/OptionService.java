@@ -435,6 +435,13 @@ public interface OptionService extends CrudService<Option, Integer> {
     String getCategoriesPrefix();
 
     /**
+     * Get specials custom prefix.
+     *
+     * @return specials prefix.
+     */
+    String getSpecialsPrefix();
+
+    /**
      * Get tags custom prefix.
      *
      * @return tags prefix.

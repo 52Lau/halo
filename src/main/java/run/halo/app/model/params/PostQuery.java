@@ -27,4 +27,9 @@ public class PostQuery {
      */
     private Integer categoryId;
 
+    /**
+     * Special id.
+     */
+    private Integer specialId;
+
 }

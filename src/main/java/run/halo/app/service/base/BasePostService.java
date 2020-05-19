@@ -140,6 +140,79 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
     List<POST> listLatest(int top);
 
     /**
+     * Pages MostLike posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    Page<POST> pageMostLike(int top);
+
+    /**
+     * Lists MostLike posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    List<POST> listMostLike(int top);
+
+
+    /**
+     * Pages MostVisit posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    Page<POST> pageMostVisit(int top);
+
+    /**
+     * Lists MostVisit posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    List<POST> listMostVisit(int top);
+
+    /**
+     * Pages TopPriority posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    Page<POST> pageTopPriority(int top);
+
+    /**
+     * Pages IndexPriority posts.
+     *
+     * @param top top number must not be less than 0
+     * @return IndexPriority posts
+     */
+    @NonNull
+    Page<POST> pageIndexPriority(int top);
+
+    /**
+     * Lists TopPriority posts.
+     *
+     * @param top top number must not be less than 0
+     * @return latest posts
+     */
+    @NonNull
+    List<POST> listTopPriority(int top);
+
+    /**
+     * Lists IndexPriority posts.
+     *
+     * @param top top number must not be less than 0
+     * @return IndexPriority posts
+     */
+    @NonNull
+    List<POST> listIndexPriority(int top);
+
+    /**
      * Gets a page of sheet.
      *
      * @param pageable page info must not be null

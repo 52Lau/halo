@@ -149,6 +149,8 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
         return postOptional.orElseThrow(() -> new NotFoundException("查询不到该页面的信息").setErrorData(slug));
     }
 
+
+
     @Override
     public Sheet importMarkdown(String markdown) {
         Assert.notNull(markdown, "Markdown document must not be null");
@@ -324,7 +326,7 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
     }
 
     @Override
-    protected void slugMustNotExist(Sheet sheet) {
+    protected Sheet slugMustNotExist(Sheet sheet) {
         Assert.notNull(sheet, "Sheet must not be null");
 
         // Get slug count
@@ -341,6 +343,7 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
         if (exist) {
             throw new AlreadyExistsException("页面别名 " + sheet.getSlug() + " 已存在");
         }
+        return sheet;
     }
 
     private String buildFullPath(Sheet sheet) {

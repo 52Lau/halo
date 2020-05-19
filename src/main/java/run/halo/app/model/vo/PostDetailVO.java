@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import run.halo.app.model.dto.BaseMetaDTO;
 import run.halo.app.model.dto.CategoryDTO;
+import run.halo.app.model.dto.SpecialDTO;
 import run.halo.app.model.dto.TagDTO;
 import run.halo.app.model.dto.post.BasePostDetailDTO;
 
@@ -29,7 +30,11 @@ public class PostDetailVO extends BasePostDetailDTO {
 
     private Set<Integer> categoryIds;
 
+    private Set<Integer> specialIds;
+
     private List<CategoryDTO> categories;
+
+    private List<SpecialDTO> specials;
 
     private Set<Long> metaIds;
 

@@ -28,5 +28,7 @@ public class BasePostSimpleDTO extends BasePostMinimalDTO {
 
     private Integer topPriority;
 
+    private Integer indexPriority;
+
     private Long likes;
 }

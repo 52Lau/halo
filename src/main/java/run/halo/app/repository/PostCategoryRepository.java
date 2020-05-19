@@ -52,6 +52,8 @@ public interface PostCategoryRepository extends BaseRepository<PostCategory, Int
     @Query("select postCategory.postId from PostCategory postCategory, Post post where postCategory.categoryId = ?1 and post.id = postCategory.postId and post.status = ?2")
     Set<Integer> findAllPostIdsByCategoryId(@NonNull Integer categoryId, @NonNull PostStatus status);
 
+
+
     /**
      * Finds all post categories by post id in.
      *

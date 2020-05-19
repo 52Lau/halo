@@ -16,6 +16,7 @@ import run.halo.app.event.logger.LogEvent;
 import run.halo.app.exception.BadRequestException;
 import run.halo.app.model.entity.Category;
 import run.halo.app.model.entity.PostComment;
+import run.halo.app.model.entity.Special;
 import run.halo.app.model.entity.User;
 import run.halo.app.model.enums.LogType;
 import run.halo.app.model.enums.PostStatus;
@@ -47,6 +48,9 @@ public class InstallController {
 
     private final CategoryService categoryService;
 
+
+    private final SpecialService specialService;
+
     private final PostService postService;
 
     private final SheetService sheetService;
@@ -61,7 +65,7 @@ public class InstallController {
 
     public InstallController(UserService userService,
                              CategoryService categoryService,
-                             PostService postService,
+                             SpecialService specialService, PostService postService,
                              SheetService sheetService,
                              PostCommentService postCommentService,
                              OptionService optionService,
@@ -69,6 +73,7 @@ public class InstallController {
                              ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
         this.categoryService = categoryService;
+        this.specialService = specialService;
         this.postService = postService;
         this.sheetService = sheetService;
         this.postCommentService = postCommentService;
@@ -101,8 +106,11 @@ public class InstallController {
         // Create default category
         Category category = createDefaultCategoryIfAbsent();
 
+        // Create default special
+        Special special = createDefaultSpecialIfAbsent();
+
         // Create default post
-        PostDetailVO post = createDefaultPostIfAbsent(category);
+        PostDetailVO post = createDefaultPostIfAbsent(category,special);
 
         // Create default sheet
         createDefaultSheet();
@@ -178,7 +186,7 @@ public class InstallController {
     }
 
     @Nullable
-    private PostDetailVO createDefaultPostIfAbsent(@Nullable Category category) {
+    private PostDetailVO createDefaultPostIfAbsent(@Nullable Category category,@Nullable Special special) {
 
         long publishedCount = postService.countByStatus(PostStatus.PUBLISHED);
 
@@ -211,7 +219,12 @@ public class InstallController {
             categoryIds.add(category.getId());
             postParam.setCategoryIds(categoryIds);
         }
-        return postService.createBy(postParam.convertTo(), Collections.emptySet(), categoryIds, false);
+        Set<Integer> specialIds = new HashSet<>();
+        if (special != null) {
+            specialIds.add(special.getId());
+            postParam.setSpecialIds(specialIds);
+        }
+        return postService.createBy(postParam.convertTo(), Collections.emptySet(), categoryIds,specialIds, false);
     }
 
     @Nullable
@@ -246,6 +259,21 @@ public class InstallController {
         category.setDescription("这是你的默认分类，如不需要，删除即可。");
         ValidationUtils.validate(category);
         return categoryService.create(category.convertTo());
+    }
+
+    @Nullable
+    private Special createDefaultSpecialIfAbsent() {
+        long specialCount = specialService.count();
+        if (specialCount > 0) {
+            return null;
+        }
+
+        SpecialParam special = new SpecialParam();
+        special.setName("默认专题");
+        special.setSlug("default");
+        special.setDescription("这是你的默认专题，如不需要，删除即可。");
+        ValidationUtils.validate(special);
+        return specialService.create(special.convertTo());
     }
 
     private User createUser(InstallParam installParam) {

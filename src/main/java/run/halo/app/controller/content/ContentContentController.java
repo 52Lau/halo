@@ -18,7 +18,7 @@ import run.halo.app.service.OptionService;
 import run.halo.app.service.PostService;
 import run.halo.app.service.SheetService;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +37,8 @@ public class ContentContentController {
     private final SheetModel sheetModel;
 
     private final CategoryModel categoryModel;
+
+    private final SpecialModel specialModel;
 
     private final TagModel tagModel;
 
@@ -57,7 +59,7 @@ public class ContentContentController {
     public ContentContentController(PostModel postModel,
                                     SheetModel sheetModel,
                                     CategoryModel categoryModel,
-                                    TagModel tagModel,
+                                    SpecialModel specialModel, TagModel tagModel,
                                     JournalModel journalModel,
                                     PhotoModel photoModel,
                                     LinkModel linkModel,
@@ -68,6 +70,7 @@ public class ContentContentController {
         this.postModel = postModel;
         this.sheetModel = sheetModel;
         this.categoryModel = categoryModel;
+        this.specialModel = specialModel;
         this.tagModel = tagModel;
         this.journalModel = journalModel;
         this.photoModel = photoModel;
@@ -77,6 +80,7 @@ public class ContentContentController {
         this.sheetService = sheetService;
         this.cacheStore = cacheStore;
     }
+
 
     @GetMapping("{prefix}")
     public String content(@PathVariable("prefix") String prefix,
@@ -121,6 +125,7 @@ public class ContentContentController {
         PostPermalinkType postPermalinkType = optionService.getPostPermalinkType();
 
         if (postPermalinkType.equals(PostPermalinkType.DEFAULT) && optionService.getArchivesPrefix().equals(prefix)) {
+//            postService.genPostHtml(slug);
             Post post = postService.getBySlug(slug);
             return postModel.content(post, token, model);
         } else if (optionService.getSheetPrefix().equals(prefix)) {
@@ -128,6 +133,8 @@ public class ContentContentController {
             return sheetModel.content(sheet, token, model);
         } else if (optionService.getCategoriesPrefix().equals(prefix)) {
             return categoryModel.listPost(model, slug, 1);
+        } else if (optionService.getSpecialsPrefix().equals(prefix)) {
+            return specialModel.listPost(model, slug, 1);
         } else if (optionService.getTagsPrefix().equals(prefix)) {
             return tagModel.listPost(model, slug, 1);
         } else {
@@ -142,6 +149,8 @@ public class ContentContentController {
                           Model model) {
         if (optionService.getCategoriesPrefix().equals(prefix)) {
             return categoryModel.listPost(model, slug, page);
+        } else if (optionService.getSpecialsPrefix().equals(prefix)) {
+            return specialModel.listPost(model, slug, page);
         } else if (optionService.getTagsPrefix().equals(prefix)) {
             return tagModel.listPost(model, slug, page);
         } else {

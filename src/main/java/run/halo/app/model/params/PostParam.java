@@ -16,6 +16,8 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Post param.
@@ -57,6 +59,9 @@ public class PostParam implements InputConverter<Post> {
     @Min(value = 0, message = "Post top priority must not be less than {value}")
     private Integer topPriority = 0;
 
+    @Min(value = 0, message = "Post top priority must not be less than {value}")
+    private Integer indexPriority = 0;
+
     private Date createTime;
 
     private String metaKeywords;
@@ -67,11 +72,31 @@ public class PostParam implements InputConverter<Post> {
 
     private Set<Integer> categoryIds;
 
+    private Set<Integer> specialIds;
+
     private Set<PostMetaParam> metas;
 
     @Override
     public Post convertTo() {
         slug = StringUtils.isBlank(slug) ? SlugUtils.slug(title) : SlugUtils.slug(slug);
+        if (null == thumbnail) {
+            //get img url
+            //if markdown
+            String pattern = "(?:!\\[(.*?)\\]\\((.*?)\\))";
+            Pattern r = Pattern.compile(pattern);
+            Matcher m = r.matcher(originalContent);
+            if (m.find()) {
+                String[] strings = m.group(0).replace(")", "").split("]\\(");
+                thumbnail = strings[1];
+            } else {
+                //html
+                pattern = "<img\\b[^<>]*?\\bsrc[\\s\\t\\r\\n]*=[\\s\\t\\r\\n]*[\"\"']?[\\s\\t\\r\\n]*(?<imgUrl>[^\\s\\t\\r\\n\"\"'<>]*)[^<>]*?/?[\\s\\t\\r\\n]*>";
+                m = r.matcher(originalContent);
+                if (m.find()) {
+                    thumbnail = m.group(0);
+                }
+            }
+        }
 
         if (null == thumbnail) {
             thumbnail = "";

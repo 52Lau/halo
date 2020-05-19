@@ -49,6 +49,24 @@ public class PostTagDirective implements TemplateDirectiveModel {
                     int top = Integer.parseInt(params.get("top").toString());
                     env.setVariable("posts", builder.build().wrap(postService.convertToListVo(postService.listLatest(top))));
                     break;
+                case "mostLike":
+                    int likeTop = Integer.parseInt(params.get("top").toString());
+                    env.setVariable("posts", builder.build().wrap(postService.convertToListVo(postService.listMostLike(likeTop))));
+                    break;
+                case "mostVisit":
+                    int visitTop = Integer.parseInt(params.get("top").toString());
+                    env.setVariable("posts", builder.build().wrap(postService.convertToListVo(postService.listMostVisit(visitTop))));
+                    break;
+                case "indexTop":
+                    int indexTop = Integer.parseInt(params.get("top").toString());
+                    //The same name exists on the homepage
+                    env.setVariable("indexPosts", builder.build().wrap(postService.convertToListVo(postService.listTopPriority(indexTop))));
+                    break;
+                case "indexCarousel":
+                    int indexCarousel = Integer.parseInt(params.get("top").toString());
+                    //The same name exists on the homepage
+                    env.setVariable("indexCarousel", builder.build().wrap(postService.convertToListVo(postService.listIndexPriority(indexCarousel))));
+                    break;
                 case "count":
                     env.setVariable("count", builder.build().wrap(postService.countByStatus(PostStatus.PUBLISHED)));
                     break;
@@ -68,8 +86,10 @@ public class PostTagDirective implements TemplateDirectiveModel {
                     break;
                 case "listByCategorySlug":
                     String categorySlug = params.get("categorySlug").toString();
-                    List<Post> posts = postCategoryService.listPostBy(categorySlug, PostStatus.PUBLISHED);
-                    env.setVariable("posts", builder.build().wrap(postService.convertToListVo(posts)));
+                    String dataCollectionAlias = params.get("dataCollectionAlias").toString();
+                    int topPost = Integer.parseInt(params.get("top").toString());
+                    List<Post> posts = postCategoryService.listPostBy(categorySlug, PostStatus.PUBLISHED,topPost);
+                    env.setVariable(dataCollectionAlias, builder.build().wrap(postService.convertToListVo(posts)));
                     break;
                 case "listByTagId":
                     Integer tagId = Integer.parseInt(params.get("tagId").toString());

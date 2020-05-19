@@ -549,6 +549,12 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
+    public String getSpecialsPrefix() {
+        return getByPropertyOrDefault(PermalinkProperties.SPECIAL_PREFIX, String.class, PermalinkProperties.SPECIAL_PREFIX.defaultValue());
+    }
+
+
+    @Override
     public String getTagsPrefix() {
         return getByPropertyOrDefault(PermalinkProperties.TAGS_PREFIX, String.class, PermalinkProperties.TAGS_PREFIX.defaultValue());
     }

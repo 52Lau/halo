@@ -74,6 +74,28 @@ public class PostController {
         return postService.convertToMinimal(postService.pageLatest(top).getContent());
     }
 
+    @GetMapping("mostlike")
+    @ApiOperation("Pages Most like post")
+    public List<BasePostMinimalDTO> pageMostLike(@RequestParam(name = "top", defaultValue = "10") int top) {
+        return postService.convertToMinimal(postService.pageMostLike(top).getContent());
+    }
+
+    @GetMapping("mostVisit")
+    @ApiOperation("Pages Most Visit post")
+    public List<BasePostMinimalDTO> pageMostVisit(@RequestParam(name = "top", defaultValue = "10") int top) {
+        return postService.convertToMinimal(postService.pageMostVisit(top).getContent());
+    }
+    @GetMapping("topPriority")
+    @ApiOperation("Pages topPriority post")
+    public List<BasePostMinimalDTO> pageTopPriority(@RequestParam(name = "top", defaultValue = "10") int top) {
+        return postService.convertToMinimal(postService.pageTopPriority(top).getContent());
+    }
+    @GetMapping("indexPriority")
+    @ApiOperation("Pages indexPriority post")
+    public List<BasePostMinimalDTO> pageIndexPriority(@RequestParam(name = "top", defaultValue = "10") int top) {
+        return postService.convertToMinimal(postService.pageIndexPriority(top).getContent());
+    }
+
     @GetMapping("status/{status}")
     @ApiOperation("Gets a page of post by post status")
     public Page<? extends BasePostSimpleDTO> pageByStatus(@PathVariable(name = "status") PostStatus status,
@@ -107,7 +129,7 @@ public class PostController {
                                  @RequestParam(value = "autoSave", required = false, defaultValue = "false") Boolean autoSave) {
         // Convert to
         Post post = postParam.convertTo();
-        return postService.createBy(post, postParam.getTagIds(), postParam.getCategoryIds(), postParam.getPostMetas(), autoSave);
+        return postService.createBy(post, postParam.getTagIds(), postParam.getCategoryIds(), postParam.getSpecialIds(),postParam.getPostMetas(), autoSave);
     }
 
     @PutMapping("{postId:\\d+}")
@@ -119,7 +141,7 @@ public class PostController {
         Post postToUpdate = postService.getById(postId);
 
         postParam.update(postToUpdate);
-        return postService.updateBy(postToUpdate, postParam.getTagIds(), postParam.getCategoryIds(), postParam.getPostMetas(), autoSave);
+        return postService.updateBy(postToUpdate, postParam.getTagIds(), postParam.getCategoryIds(),postParam.getSpecialIds(), postParam.getPostMetas(), autoSave);
     }
 
     @PutMapping("{postId:\\d+}/status/{status}")
@@ -195,4 +217,7 @@ public class PostController {
         // build preview post url and return
         return previewUrl.toString();
     }
+
+
+
 }

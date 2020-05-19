@@ -22,6 +22,12 @@ public enum PermalinkProperties implements PropertyEnum {
     CATEGORIES_PREFIX("categories_prefix", String.class, "categories"),
 
     /**
+     * Specials prefix
+     * such as: /specials or /specials/${slug}
+     */
+    SPECIAL_PREFIX("specials_prefix", String.class, "specials"),
+
+    /**
      * Tags prefix
      * such as: /tags or /tags/${slug}
      */

@@ -171,6 +171,74 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     }
 
     @Override
+    public Page<POST> pageMostLike(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest mostLikePageable = PageRequest.of(0, top, Sort.by(DESC, "likes"));
+
+        return listAll(mostLikePageable);
+    }
+
+    @Override
+    public List<POST> listMostLike(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest mostLikePageable = PageRequest.of(0, top, Sort.by(DESC, "likes"));
+        return basePostRepository.findAllByStatus(PostStatus.PUBLISHED, mostLikePageable).getContent();
+    }
+
+    @Override
+    public Page<POST> pageMostVisit(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest mostVisitPageable = PageRequest.of(0, top, Sort.by(DESC, "visits"));
+
+        return listAll(mostVisitPageable);
+    }
+
+    @Override
+    public List<POST> listMostVisit(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest mostVisitPageable = PageRequest.of(0, top, Sort.by(DESC, "visits"));
+        return basePostRepository.findAllByStatus(PostStatus.PUBLISHED, mostVisitPageable).getContent();
+    }
+
+    @Override
+    public Page<POST> pageTopPriority(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest topPriorityPageable = PageRequest.of(0, top, Sort.by(DESC, "topPriority"));
+
+        return listAll(topPriorityPageable);
+    }
+
+    @Override
+    public List<POST> listTopPriority(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest topPriorityPageable = PageRequest.of(0, top, Sort.by(DESC, "topPriority"));
+        return basePostRepository.findAllByStatus(PostStatus.PUBLISHED, topPriorityPageable).getContent();
+    }
+
+    @Override
+    public Page<POST> pageIndexPriority(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest topPriorityPageable = PageRequest.of(0, top, Sort.by(DESC, "indexPriority"));
+
+        return listAll(topPriorityPageable);
+    }
+
+    @Override
+    public List<POST> listIndexPriority(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest topPriorityPageable = PageRequest.of(0, top, Sort.by(DESC, "indexPriority"));
+        return basePostRepository.findAllByStatus(PostStatus.PUBLISHED, topPriorityPageable).getContent();
+    }
+
+    @Override
     public Page<POST> pageBy(Pageable pageable) {
         Assert.notNull(pageable, "Page info must not be null");
 
@@ -443,7 +511,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     @Override
     public POST create(POST post) {
         // Check title
-        slugMustNotExist(post);
+        post = slugMustNotExist(post);
 
         return super.create(post);
     }
@@ -451,7 +519,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     @Override
     public POST update(POST post) {
         // Check title
-        slugMustNotExist(post);
+        post = slugMustNotExist(post);
 
         return super.update(post);
     }
@@ -461,7 +529,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
      *
      * @param post post must not be null
      */
-    protected void slugMustNotExist(@NonNull POST post) {
+    protected POST slugMustNotExist(@NonNull POST post) {
         Assert.notNull(post, "Post must not be null");
 
         // Get slug count
@@ -476,8 +544,19 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
         }
 
         if (exist) {
-            throw new AlreadyExistsException("文章别名 " + post.getSlug() + " 已存在");
+            //Generate name again
+            String[] strings = post.getSlug().split("-");
+            String newsulg = "";
+            if (strings.length > 1) {
+                newsulg = strings[0] + "-" + (Integer.valueOf(strings[1]) + 1);
+            } else {
+                newsulg = strings[0] + "-1";
+            }
+            post.setSlug(newsulg);
+            slugMustNotExist(post);
+            //throw new AlreadyExistsException("文章别名 " + post.getSlug() + " 已存在");
         }
+        return post;
     }
 
     @NonNull

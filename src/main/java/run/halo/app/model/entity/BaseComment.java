@@ -110,6 +110,13 @@ public class BaseComment extends BaseEntity {
     private Integer topPriority;
 
     /**
+     * Whether to Home Carousel the post.
+     */
+    @Column(name = "index_priority")
+    @ColumnDefault("0")
+    private Integer indexPriority;
+
+    /**
      * Parent comment.
      */
     @Column(name = "parent_id")

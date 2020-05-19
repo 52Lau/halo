@@ -126,6 +126,13 @@ public class BasePost extends BaseEntity {
     private Integer topPriority;
 
     /**
+     * Whether to Home Carousel the post.
+     */
+    @Column(name = "index_priority")
+    @ColumnDefault("0")
+    private Integer indexPriority;
+
+    /**
      * Likes
      */
     @Column(name = "likes")
@@ -185,6 +192,10 @@ public class BasePost extends BaseEntity {
 
         if (topPriority == null) {
             topPriority = 0;
+        }
+
+        if (indexPriority == null) {
+            indexPriority = 0;
         }
 
         if (visits == null || visits < 0) {

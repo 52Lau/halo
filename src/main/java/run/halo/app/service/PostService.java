@@ -52,12 +52,13 @@ public interface PostService extends BasePostService<Post> {
      * @param post        post must not be null
      * @param tagIds      tag id set
      * @param categoryIds category id set
+     * @param specialIds special id set
      * @param metas       metas
      * @param autoSave    autoSave
      * @return post created
      */
     @NonNull
-    PostDetailVO createBy(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave);
+    PostDetailVO createBy(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds,Set<Integer> specialIds, Set<PostMeta> metas, boolean autoSave);
 
     /**
      * Creates post by post param.
@@ -65,11 +66,12 @@ public interface PostService extends BasePostService<Post> {
      * @param post        post must not be null
      * @param tagIds      tag id set
      * @param categoryIds category id set
+     * @param specialIds special id set
      * @param autoSave    autoSave
      * @return post created
      */
     @NonNull
-    PostDetailVO createBy(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds, boolean autoSave);
+    PostDetailVO createBy(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds ,Set<Integer> specialIds,boolean autoSave);
 
     /**
      * Updates post by post, tag id set and category id set.
@@ -82,7 +84,7 @@ public interface PostService extends BasePostService<Post> {
      * @return updated post
      */
     @NonNull
-    PostDetailVO updateBy(@NonNull Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave);
+    PostDetailVO updateBy(@NonNull Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds,Set<Integer> specialIds, Set<PostMeta> metas, boolean autoSave);
 
     /**
      * Gets post by post status and slug.
@@ -272,4 +274,6 @@ public interface PostService extends BasePostService<Post> {
      */
     @NotNull
     Sort getPostDefaultSort();
+
+    void genPostHtml(String slug);
 }

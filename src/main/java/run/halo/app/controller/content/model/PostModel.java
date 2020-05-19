@@ -1,5 +1,6 @@
 package run.halo.app.controller.content.model;
 
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,10 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 import run.halo.app.cache.AbstractStringCacheStore;
 import run.halo.app.exception.ForbiddenException;
-import run.halo.app.model.entity.Category;
-import run.halo.app.model.entity.Post;
-import run.halo.app.model.entity.PostMeta;
-import run.halo.app.model.entity.Tag;
+import run.halo.app.model.entity.*;
 import run.halo.app.model.enums.PostEditorType;
 import run.halo.app.model.enums.PostStatus;
 import run.halo.app.model.support.HaloConst;
@@ -40,7 +38,11 @@ public class PostModel {
 
     private final PostCategoryService postCategoryService;
 
+    private final PostSpecialService postSpecialService;
+
     private final CategoryService categoryService;
+
+    private final SpecialService specialService;
 
     private final PostTagService postTagService;
 
@@ -55,8 +57,8 @@ public class PostModel {
     public PostModel(PostService postService,
                      ThemeService themeService,
                      PostCategoryService postCategoryService,
-                     CategoryService categoryService,
-                     PostMetaService postMetaService,
+                     PostSpecialService postSpecialService, CategoryService categoryService,
+                     SpecialService specialService, PostMetaService postMetaService,
                      PostTagService postTagService,
                      TagService tagService,
                      OptionService optionService,
@@ -64,7 +66,9 @@ public class PostModel {
         this.postService = postService;
         this.themeService = themeService;
         this.postCategoryService = postCategoryService;
+        this.postSpecialService = postSpecialService;
         this.categoryService = categoryService;
+        this.specialService = specialService;
         this.postMetaService = postMetaService;
         this.postTagService = postTagService;
         this.tagService = tagService;
@@ -101,6 +105,7 @@ public class PostModel {
         adjacentPostVO.getOptionalNextPost().ifPresent(nextPost -> model.addAttribute("nextPost", postService.convertToDetailVo(nextPost)));
 
         List<Category> categories = postCategoryService.listCategoriesBy(post.getId());
+        List<Special> specials = postSpecialService.listSpecialsBy(post.getId());
         List<Tag> tags = postTagService.listTagsBy(post.getId());
         List<PostMeta> metas = postMetaService.listBy(post.getId());
 
@@ -121,6 +126,7 @@ public class PostModel {
         model.addAttribute("is_post", true);
         model.addAttribute("post", postService.convertToDetailVo(post));
         model.addAttribute("categories", categoryService.convertTo(categories));
+        model.addAttribute("specials", specialService.convertTo(specials));
         model.addAttribute("tags", tagService.convertTo(tags));
         model.addAttribute("metas", postMetaService.convertToMap(metas));
 
@@ -128,7 +134,6 @@ public class PostModel {
             ThemeService.CUSTOM_POST_PREFIX + post.getTemplate() + HaloConst.SUFFIX_FTL)) {
             return themeService.render(ThemeService.CUSTOM_POST_PREFIX + post.getTemplate());
         }
-
         return themeService.render("post");
     }
 
@@ -139,7 +144,6 @@ public class PostModel {
 
         Page<Post> postPage = postService.pageBy(PostStatus.PUBLISHED, pageable);
         Page<PostListVO> posts = postService.convertToListVo(postPage);
-
         model.addAttribute("is_index", true);
         model.addAttribute("posts", posts);
         model.addAttribute("meta_keywords", optionService.getSeoKeywords());
@@ -157,6 +161,7 @@ public class PostModel {
         Page<PostListVO> posts = postService.convertToListVo(postPage);
 
         List<ArchiveYearVO> archives = postService.convertToYearArchives(postPage.getContent());
+
 
         model.addAttribute("is_archives", true);
         model.addAttribute("posts", posts);

@@ -57,6 +57,10 @@ public class CategoryTagDirective implements TemplateDirectiveModel {
                 case "count":
                     env.setVariable("count", builder.build().wrap(categoryService.count()));
                     break;
+                case "info":
+                    String categorySlug = params.get("categorySlug").toString();
+                    env.setVariable("categoryInfo", builder.build().wrap(categoryService.getBySlug(categorySlug)));
+                    break;
                 default:
                     break;
             }

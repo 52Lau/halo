@@ -56,6 +56,9 @@ public class SheetParam implements InputConverter<Sheet> {
     @Min(value = 0, message = "Post top priority must not be less than {value}")
     private Integer topPriority = 0;
 
+    @Min(value = 0, message = "Post top priority must not be less than {value}")
+    private Integer indexPriority = 0;
+
     private Date createTime;
 
     private String metaKeywords;
