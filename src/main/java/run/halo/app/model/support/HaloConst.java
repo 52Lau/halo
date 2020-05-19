@@ -131,6 +131,10 @@ public class HaloConst {
     public final static String ONE_TIME_TOKEN_QUERY_NAME = "ott";
     public final static String ONE_TIME_TOKEN_HEADER_NAME = "ott";
     /**
+     * Version constant. (Available in production environment)
+     */
+    public static final String HALO_VERSION;
+    /**
      * Database product name.
      */
     public static String DATABASE_PRODUCT_NAME = null;
@@ -139,8 +143,8 @@ public class HaloConst {
      */
     public static String USER_SESSION_KEY = "user_session";
 
-    /**
-     * Version constant.
-     */
-    public static String HALO_VERSION = null;
+    static {
+        // Set version
+        HALO_VERSION = HaloConst.class.getPackage().getImplementationVersion();
+    }
 }
