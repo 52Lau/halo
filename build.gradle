@@ -48,21 +48,21 @@ bootJar {
 }
 
 ext {
-    hutoolVersion =  "5.3.3"
+    hutoolVersion =  "5.3.8"
     upyunSdkVersion =  "4.2.0"
-    qiniuSdkVersion =  "7.2.28"
+    qiniuSdkVersion =  "7.2.29"
     aliyunSdkVersion =  "3.9.1"
     baiduSdkVersion =  "0.10.36"
-    qcloudSdkVersion =  "5.6.22"
+    qcloudSdkVersion =  "5.6.25"
     swaggerVersion =  "2.9.2"
     commonsLangVersion =  "3.10"
     httpclientVersion =  "4.5.12"
     dataformatYamlVersion =  "2.11.0"
     jgitVersion =  "5.7.0.202003110725-r"
-    flexmarkVersion =  "0.61.26"
+    flexmarkVersion =  "0.62.2"
     thumbnailatorVersion =  "0.4.11"
     image4jVersion =  "0.7zensight1"
-    flywayVersion =  "6.4.1"
+    flywayVersion =  "6.5.0"
     h2Version =  "1.4.196"
     levelDbVersion =  "0.12"
     fastJsonVersion =  "1.2.68"
@@ -70,15 +70,17 @@ ext {
     jedisVersion= '3.3.0'
     zxingVersion = "3.4.0"
     huaweiObsVersion = "3.19.7"
-//    redis='2.2.6.RELEASE'
-//    KlockRedis='1.4-RELEASE'
+    githubApiVersion = "1.84"
+    powermockVersion = "1.6.6"
+    mockitoVersion = "1.10.19"
 }
 
 dependencies {
+    implementation "org.kohsuke:github-api:$githubApiVersion"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.boot:spring-boot-starter-undertow"
+    implementation "org.springframework.boot:spring-boot-starter-jetty"
     implementation "org.springframework.boot:spring-boot-starter-freemarker"
     implementation "com.sun.mail:jakarta.mail"
 
@@ -124,8 +126,6 @@ dependencies {
 
     implementation "org.iq80.leveldb:leveldb:$levelDbVersion"
     implementation "redis.clients:jedis:$jedisVersion"
-//    implementation "cn.keking:spring-boot-klock-starter:$KlockRedis"
-//    implementation "org.springframework.boot:spring-boot-starter-data-redis:$redis"
     runtimeOnly "com.h2database:h2:$h2Version"
     runtimeOnly "mysql:mysql-connector-java"
 
@@ -138,5 +138,13 @@ dependencies {
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
 
+    testCompile group: 'org.mockito', name: 'mockito-all', version: "$mockitoVersion"
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: "$powermockVersion"
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: "$powermockVersion"
+
     developmentOnly "org.springframework.boot:spring-boot-devtools"
+}
+
+test {
+    useJUnitPlatform()
 }
