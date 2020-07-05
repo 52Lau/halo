@@ -545,7 +545,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
 
         if (exist) {
             //Generate name again
-            String[] strings = post.getSlug().split("-");
+            /*String[] strings = post.getSlug().split("-");
             String newsulg = "";
             if (strings.length > 1) {
                 newsulg = strings[0] + "-" + (Integer.valueOf(strings[1]) + 1);
@@ -553,8 +553,8 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
                 newsulg = strings[0] + "-1";
             }
             post.setSlug(newsulg);
-            slugMustNotExist(post);
-            //throw new AlreadyExistsException("文章别名 " + post.getSlug() + " 已存在");
+            slugMustNotExist(post);*/
+            throw new AlreadyExistsException("文章别名 " + post.getSlug() + " 已存在");
         }
         return post;
     }

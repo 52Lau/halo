@@ -64,6 +64,8 @@ public class BackupServiceImpl implements BackupService {
 
     private final CategoryService categoryService;
 
+    private final SpecialService specialService;
+
     private final CommentBlackListService commentBlackListService;
 
     private final JournalService journalService;
@@ -108,9 +110,10 @@ public class BackupServiceImpl implements BackupService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public BackupServiceImpl(AttachmentService attachmentService, CategoryService categoryService, CommentBlackListService commentBlackListService, JournalService journalService, JournalCommentService journalCommentService, LinkService linkService, LogService logService, MenuService menuService, OptionService optionService, PhotoService photoService, PostService postService, PostCategoryService postCategoryService, PostCommentService postCommentService, PostMetaService postMetaService, PostTagService postTagService, SheetService sheetService, SheetCommentService sheetCommentService, SheetMetaService sheetMetaService, TagService tagService, ThemeSettingService themeSettingService, UserService userService, OneTimeTokenService oneTimeTokenService, HaloProperties haloProperties, ApplicationEventPublisher eventPublisher) {
+    public BackupServiceImpl(AttachmentService attachmentService, CategoryService categoryService, SpecialService specialService, CommentBlackListService commentBlackListService, JournalService journalService, JournalCommentService journalCommentService, LinkService linkService, LogService logService, MenuService menuService, OptionService optionService, PhotoService photoService, PostService postService, PostCategoryService postCategoryService, PostCommentService postCommentService, PostMetaService postMetaService, PostTagService postTagService, SheetService sheetService, SheetCommentService sheetCommentService, SheetMetaService sheetMetaService, TagService tagService, ThemeSettingService themeSettingService, UserService userService, OneTimeTokenService oneTimeTokenService, HaloProperties haloProperties, ApplicationEventPublisher eventPublisher) {
         this.attachmentService = attachmentService;
         this.categoryService = categoryService;
+        this.specialService = specialService;
         this.commentBlackListService = commentBlackListService;
         this.journalService = journalService;
         this.journalCommentService = journalCommentService;
@@ -263,6 +266,7 @@ public class BackupServiceImpl implements BackupService {
         data.put("export_date", DateUtil.now());
         data.put("attachments", attachmentService.listAll());
         data.put("categories", categoryService.listAll());
+        data.put("specials", specialService.listAll());
         data.put("comment_black_list", commentBlackListService.listAll());
         data.put("journals", journalService.listAll());
         data.put("journal_comments", journalCommentService.listAll());
@@ -349,6 +353,9 @@ public class BackupServiceImpl implements BackupService {
 
         List<Category> categories = data.getJSONArray("categories").toJavaList(Category.class);
         categoryService.createInBatch(categories);
+
+        List<Special> specials = data.getJSONArray("specials").toJavaList(Special.class);
+        specialService.createInBatch(specials);
 
         List<Tag> tags = data.getJSONArray("tags").toJavaList(Tag.class);
         tagService.createInBatch(tags);

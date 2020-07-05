@@ -1,6 +1,7 @@
 package run.halo.app.service.impl;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import run.halo.app.utils.ServiceUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static run.halo.app.model.support.HaloConst.URL_SEPARATOR;
 
 /**
@@ -267,4 +269,44 @@ public class PostSpecialServiceImpl extends AbstractCrudService<PostSpecial, Int
             })
             .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Special> listIndexPriority(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+        PageRequest topPriorityPageable = PageRequest.of(0, top, Sort.by(DESC, "createTime"));
+        return specialRepository.findAllByStatus(PostStatus.PUBLISHED, topPriorityPageable).getContent();
+    }
+
+    @Override
+    public List<SpecialWithPostCountDTO> convertToListVo(List<Special> specials) {
+        // Query special post count
+        Map<Integer, Long> specialPostCountMap = ServiceUtils.convertToMap(postSpecialRepository.findPostCount(), SpecialPostCountProjection::getSpecialId, SpecialPostCountProjection::getPostCount);
+        // Convert and return
+        return specials.stream()
+            .map(special -> {
+                // Create special post count dto
+                SpecialWithPostCountDTO specialWithPostCountDTO = new SpecialWithPostCountDTO().convertFrom(special);
+                // Set post count
+                specialWithPostCountDTO.setPostCount(specialPostCountMap.getOrDefault(special.getId(), 0L));
+
+                StringBuilder fullPath = new StringBuilder();
+
+                if (optionService.isEnabledAbsolutePath()) {
+                    fullPath.append(optionService.getBlogBaseUrl());
+                }
+
+                fullPath.append(URL_SEPARATOR)
+                    .append(optionService.getSpecialsPrefix())
+                    .append(URL_SEPARATOR)
+                    .append(special.getSlug())
+                    .append(optionService.getPathSuffix());
+
+                specialWithPostCountDTO.setFullPath(fullPath.toString());
+
+                return specialWithPostCountDTO;
+            })
+            .collect(Collectors.toList());
+    }
+
+
 }

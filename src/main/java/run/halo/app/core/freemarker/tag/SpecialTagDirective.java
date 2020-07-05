@@ -2,6 +2,7 @@ package run.halo.app.core.freemarker.tag;
 
 import freemarker.core.Environment;
 import freemarker.template.*;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import run.halo.app.model.entity.Special;
@@ -43,6 +44,10 @@ public class SpecialTagDirective implements TemplateDirectiveModel {
         if (params.containsKey(HaloConst.METHOD_KEY)) {
             String method = params.get(HaloConst.METHOD_KEY).toString();
             switch (method) {
+                case "indexTop":
+                    int indexTop = Integer.parseInt(params.get("top").toString());
+                    env.setVariable("specials", builder.build().wrap(postSpecialService.convertToListVo(postSpecialService.listIndexPriority(indexTop))));
+                    break;
                 case "list":
                     env.setVariable("specials", builder.build().wrap(postSpecialService.listSpecialWithPostCountDto(Sort.by(DESC, "createTime"))));
                     break;

@@ -158,4 +158,13 @@ public interface PostTagService extends CrudService<PostTag, Integer> {
     @NonNull
     @Transactional
     List<PostTag> removeByTagId(@NonNull Integer tagId);
+
+    /**
+     * Lists latest post tags.
+     *
+     * @param top top number must not be less than 0
+     * @return latest post tags
+     */
+    @NonNull
+    List<Tag> listLatest(int top);
 }

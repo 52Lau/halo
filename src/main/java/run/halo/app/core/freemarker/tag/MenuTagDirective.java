@@ -10,6 +10,7 @@ import run.halo.app.service.MenuService;
 import java.io.IOException;
 import java.util.Map;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
@@ -41,7 +42,7 @@ public class MenuTagDirective implements TemplateDirectiveModel {
                     env.setVariable("menus", builder.build().wrap(menuService.listAll()));
                     break;
                 case "tree":
-                    env.setVariable("menus", builder.build().wrap(menuService.listAsTree(Sort.by(DESC, "priority"))));
+                    env.setVariable("menus", builder.build().wrap(menuService.listAsTree(Sort.by(ASC, "priority"))));
                     break;
                 case "listTeams":
                     env.setVariable("teams", builder.build().wrap(menuService.listTeamVos(Sort.by(DESC, "priority"))));

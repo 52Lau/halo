@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import org.springframework.ui.Model;
 import run.halo.app.model.entity.Post;
 import run.halo.app.model.entity.PostMeta;
 import run.halo.app.model.enums.PostStatus;
@@ -275,5 +276,10 @@ public interface PostService extends BasePostService<Post> {
     @NotNull
     Sort getPostDefaultSort();
 
-    void genPostHtml(String slug);
+    /**
+     * configured to generate static files
+     * @param post
+     * @param model
+     */
+    void genPostHtml(Post post, Model model);
 }

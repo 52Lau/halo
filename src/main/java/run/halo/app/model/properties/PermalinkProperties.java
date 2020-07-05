@@ -25,7 +25,7 @@ public enum PermalinkProperties implements PropertyEnum {
      * Specials prefix
      * such as: /specials or /specials/${slug}
      */
-    SPECIAL_PREFIX("specials_prefix", String.class, "specials"),
+    SPECIALS_PREFIX("specials_prefix", String.class, "specials"),
 
     /**
      * Tags prefix
@@ -67,7 +67,13 @@ public enum PermalinkProperties implements PropertyEnum {
      * Path suffix
      * such as: .html or .jsp
      */
-    PATH_SUFFIX("path_suffix", String.class, "");
+    PATH_SUFFIX("path_suffix", String.class, ""),
+
+    /**
+     * custom_category suffix
+     * such as: .html or .jsp
+     */
+    CUSTOM_CATEGORY_SUFFIX("custom_category_suffix", String.class, "custom_category");
 
     private final String value;
 

@@ -1,6 +1,7 @@
 package run.halo.app.service.impl;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import run.halo.app.utils.ServiceUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.domain.Sort.Direction.DESC;
 import static run.halo.app.model.support.HaloConst.URL_SEPARATOR;
 
 /**
@@ -264,5 +266,12 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
         Assert.notNull(tagId, "Tag id must not be null");
 
         return postTagRepository.deleteByTagId(tagId);
+    }
+    @Override
+    public List<Tag> listLatest(int top) {
+        Assert.isTrue(top > 0, "Top number must not be less than 0");
+
+        PageRequest latestPageable = PageRequest.of(0, top, Sort.by(DESC, "createTime"));
+        return tagRepository.findAll(latestPageable).getContent();
     }
 }

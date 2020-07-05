@@ -89,6 +89,8 @@ public class ContentContentController {
             return postModel.archives(1, model);
         } else if (optionService.getCategoriesPrefix().equals(prefix)) {
             return categoryModel.list(model);
+        } else if (optionService.getSpecialsPrefix().equals(prefix)) {
+            return specialModel.list(model);
         } else if (optionService.getTagsPrefix().equals(prefix)) {
             return tagModel.list(model);
         } else if (optionService.getJournalsPrefix().equals(prefix)) {
@@ -117,6 +119,7 @@ public class ContentContentController {
         }
     }
 
+
     @GetMapping("{prefix}/{slug}")
     public String content(@PathVariable("prefix") String prefix,
                           @PathVariable("slug") String slug,
@@ -125,14 +128,13 @@ public class ContentContentController {
         PostPermalinkType postPermalinkType = optionService.getPostPermalinkType();
 
         if (postPermalinkType.equals(PostPermalinkType.DEFAULT) && optionService.getArchivesPrefix().equals(prefix)) {
-//            postService.genPostHtml(slug);
             Post post = postService.getBySlug(slug);
             return postModel.content(post, token, model);
         } else if (optionService.getSheetPrefix().equals(prefix)) {
             Sheet sheet = sheetService.getBySlug(slug);
             return sheetModel.content(sheet, token, model);
         } else if (optionService.getCategoriesPrefix().equals(prefix)) {
-            return categoryModel.listPost(model, slug, 1);
+            return categoryModel.listPost(model, slug, 1, null);
         } else if (optionService.getSpecialsPrefix().equals(prefix)) {
             return specialModel.listPost(model, slug, 1);
         } else if (optionService.getTagsPrefix().equals(prefix)) {
@@ -142,17 +144,50 @@ public class ContentContentController {
         }
     }
 
+    /**
+     * Custom templatename
+     */
+    @GetMapping("{prefix}/{templatename}/{slug}")
+    public String content(@PathVariable("prefix") String prefix,
+                          @PathVariable("templatename") String templatename,
+                          @PathVariable("slug") String slug,
+                          @RequestParam(value = "token", required = false) String token,
+                          Model model) {
+        if (optionService.getCustomCategorySuffix().equals(prefix)) {
+            return categoryModel.listPost(model, slug, 1, templatename);
+        } else {
+            throw new NotFoundException("Not Found");
+        }
+    }
+
+
     @GetMapping("{prefix}/{slug}/page/{page:\\d+}")
     public String content(@PathVariable("prefix") String prefix,
                           @PathVariable("slug") String slug,
                           @PathVariable("page") Integer page,
                           Model model) {
         if (optionService.getCategoriesPrefix().equals(prefix)) {
-            return categoryModel.listPost(model, slug, page);
+            return categoryModel.listPost(model, slug, page, null);
         } else if (optionService.getSpecialsPrefix().equals(prefix)) {
             return specialModel.listPost(model, slug, page);
         } else if (optionService.getTagsPrefix().equals(prefix)) {
             return tagModel.listPost(model, slug, page);
+        } else {
+            throw new NotFoundException("Not Found");
+        }
+    }
+
+    /**
+     * Custom templatename
+     */
+    @GetMapping("{prefix}/{templatename}/{slug}/page/{page:\\d+}")
+    public String content(@PathVariable("prefix") String prefix,
+                          @PathVariable("templatename") String templatename,
+                          @PathVariable("slug") String slug,
+                          @PathVariable("page") Integer page,
+                          Model model) {
+        if (optionService.getCategoriesPrefix().equals(prefix)) {
+            return categoryModel.listPost(model, slug, page, templatename);
         } else {
             throw new NotFoundException("Not Found");
         }

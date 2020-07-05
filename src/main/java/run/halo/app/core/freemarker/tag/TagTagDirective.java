@@ -43,6 +43,10 @@ public class TagTagDirective implements TemplateDirectiveModel {
         if (params.containsKey(HaloConst.METHOD_KEY)) {
             String method = params.get(HaloConst.METHOD_KEY).toString();
             switch (method) {
+                case "searchTop":
+                    int searchTop = Integer.parseInt(params.get("top").toString());
+                    env.setVariable("tags", builder.build().wrap(postTagService.listLatest(searchTop)));
+                    break;
                 case "list":
                     env.setVariable("tags", builder.build().wrap(postTagService.listTagWithCountDtos(Sort.by(DESC, "createTime"))));
                     break;

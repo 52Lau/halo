@@ -70,6 +70,8 @@ ext {
     jedisVersion= '3.3.0'
     zxingVersion = "3.4.0"
     huaweiObsVersion = "3.19.7"
+//    redis='2.2.6.RELEASE'
+//    KlockRedis='1.4-RELEASE'
 }
 
 dependencies {
@@ -122,6 +124,8 @@ dependencies {
 
     implementation "org.iq80.leveldb:leveldb:$levelDbVersion"
     implementation "redis.clients:jedis:$jedisVersion"
+//    implementation "cn.keking:spring-boot-klock-starter:$KlockRedis"
+//    implementation "org.springframework.boot:spring-boot-starter-data-redis:$redis"
     runtimeOnly "com.h2database:h2:$h2Version"
     runtimeOnly "mysql:mysql-connector-java"
 

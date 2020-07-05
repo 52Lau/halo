@@ -73,6 +73,7 @@ public class Menu extends BaseEntity {
     @Column(name = "team")
     private String team;
 
+
     @Override
     public void prePersist() {
         super.prePersist();
@@ -96,5 +97,6 @@ public class Menu extends BaseEntity {
         if (team == null) {
             team = "";
         }
+
     }
 }

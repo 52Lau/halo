@@ -134,6 +134,9 @@ public class PostModel {
             ThemeService.CUSTOM_POST_PREFIX + post.getTemplate() + HaloConst.SUFFIX_FTL)) {
             return themeService.render(ThemeService.CUSTOM_POST_PREFIX + post.getTemplate());
         }
+        //If configured to generate static files
+        postService.genPostHtml(post,model);
+        System.out.println(themeService.render("post"));
         return themeService.render("post");
     }
 

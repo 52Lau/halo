@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.GenericGenerator;
+import run.halo.app.model.enums.PostStatus;
 
 import javax.persistence.*;
 
@@ -29,42 +30,49 @@ public class Special extends BaseEntity {
     private Integer id;
 
     /**
-     * Category name.
+     * Special name.
      */
     @Column(name = "name", nullable = false)
     private String name;
 
     /**
-     * Category slug name.
+     * Special slug name.
      */
     @Deprecated
     @Column(name = "slug_name")
     private String slugName;
 
     /**
-     * Category slug.
+     * Special slug.
      */
     @Column(name = "slug", unique = true)
     private String slug;
 
     /**
-     * Description,can be display on category page.
+     * Description,can be display on special page.
      */
     @Column(name = "description", length = 100)
     private String description;
 
     /**
-     * Cover thumbnail of the category.
+     * Cover thumbnail of the special.
      */
     @Column(name = "thumbnail", length = 1023)
     private String thumbnail;
 
     /**
-     * Parent category.
+     * Parent special.
      */
     @Column(name = "parent_id")
     @ColumnDefault("0")
     private Integer parentId;
+
+    /**
+     * Specila status.
+     */
+    @Column(name = "status")
+    @ColumnDefault("1")
+    private PostStatus status;
 
     @Override
     public void prePersist() {

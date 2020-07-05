@@ -59,6 +59,12 @@ public class TagController {
         return tagService.convertTo(tagService.create(tag));
     }
 
+    @GetMapping("{tagName}")
+    @ApiOperation("Gets tag detail by name")
+    public TagDTO getBy(@PathVariable("tagName") String tagName) {
+        return tagService.convertTo(tagService.getByName(tagName));
+    }
+
     @GetMapping("{tagId:\\d+}")
     @ApiOperation("Gets tag detail by id")
     public TagDTO getBy(@PathVariable("tagId") Integer tagId) {

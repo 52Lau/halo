@@ -11,6 +11,7 @@ import run.halo.app.model.dto.CategoryDTO;
 import run.halo.app.model.entity.Category;
 import run.halo.app.model.entity.Post;
 import run.halo.app.model.enums.PostStatus;
+import run.halo.app.model.support.HaloConst;
 import run.halo.app.model.vo.PostListVO;
 import run.halo.app.service.*;
 
@@ -62,9 +63,10 @@ public class CategoryModel {
      * @param model model
      * @param slug  slug
      * @param page  current page
+     * @param templatename  customTemplate
      * @return template name
      */
-    public String listPost(Model model, String slug, Integer page) {
+    public String listPost(Model model, String slug, Integer page,String templatename) {
         // Get category by slug
         final Category category = categoryService.getBySlugOfNonNull(slug);
         CategoryDTO categoryDTO = categoryService.convertTo(category);
@@ -84,6 +86,13 @@ public class CategoryModel {
         model.addAttribute("posts", posts);
         model.addAttribute("category", categoryDTO);
         model.addAttribute("meta_keywords", optionService.getSeoKeywords());
+
+        //Custom category name
+        if (themeService.templateExists(
+            ThemeService.CUSTOM_CATEGORY_PREFIX + templatename + HaloConst.SUFFIX_FTL)) {
+            return themeService.render(ThemeService.CUSTOM_CATEGORY_PREFIX + templatename);
+        }
+
         return themeService.render("category");
     }
 }

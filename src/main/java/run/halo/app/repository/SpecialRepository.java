@@ -1,7 +1,10 @@
 package run.halo.app.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import run.halo.app.model.entity.Special;
+import run.halo.app.model.enums.PostStatus;
 import run.halo.app.repository.base.BaseRepository;
 
 import java.util.List;
@@ -53,4 +56,15 @@ public interface SpecialRepository extends BaseRepository<Special, Integer> {
      * @return list of category
      */
     List<Special> findByParentId(@NonNull Integer id);
+
+
+    /**
+     * Finds specilas by status and pageable.
+     *
+     * @param status   post status must not be null
+     * @param pageable page info must not be null
+     * @return a page of specila
+     */
+    @NonNull
+    Page<Special> findAllByStatus(@NonNull PostStatus status, @NonNull Pageable pageable);
 }

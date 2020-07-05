@@ -156,10 +156,16 @@ public class InstallController {
         menuCategory.setPriority(3);
         menuService.create(menuCategory.convertTo());
 
+        MenuParam menuSpecial = new MenuParam();
+        menuSpecial.setName("默认分类");
+        menuSpecial.setUrl("/specials/default");
+        menuSpecial.setPriority(4);
+        menuService.create(menuSpecial.convertTo());
+
         MenuParam menuSheet = new MenuParam();
         menuSheet.setName("关于页面");
         menuSheet.setUrl("/s/about");
-        menuSheet.setPriority(4);
+        menuSheet.setPriority(5);
         menuService.create(menuSheet.convertTo());
     }
 

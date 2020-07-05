@@ -57,7 +57,7 @@ public class PostController {
 
     @GetMapping
     @ApiOperation("Lists posts")
-    public Page<? extends BasePostSimpleDTO> pageBy(@PageableDefault(sort = {"topPriority", "createTime"}, direction = DESC) Pageable pageable,
+    public Page<? extends BasePostSimpleDTO> pageBy(@PageableDefault(sort = {"topPriority", "indexPriority","createTime"}, direction = DESC) Pageable pageable,
                                                     PostQuery postQuery,
                                                     @RequestParam(value = "more", defaultValue = "true") Boolean more) {
         Page<Post> postPage = postService.pageBy(postQuery, pageable);

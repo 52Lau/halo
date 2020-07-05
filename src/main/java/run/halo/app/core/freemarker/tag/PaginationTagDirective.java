@@ -240,6 +240,45 @@ public class PaginationTagDirective implements TemplateDirectiveModel {
                         rainbowPages.add(rainbowPage);
                     }
                     break;
+                case "specialPosts":
+                    String specialSlug = params.get("slug").toString();
+
+                    nextPageFullPath.append(URL_SEPARATOR)
+                        .append(optionService.getSpecialsPrefix())
+                        .append(URL_SEPARATOR)
+                        .append(specialSlug);
+                    prevPageFullPath.append(URL_SEPARATOR)
+                        .append(optionService.getSpecialsPrefix())
+                        .append(URL_SEPARATOR)
+                        .append(specialSlug);
+
+                    nextPageFullPath.append("/page/")
+                        .append(page + 2)
+                        .append(pathSuffix);
+
+                    if (page == 1) {
+                        prevPageFullPath.append(pathSuffix);
+                    } else {
+                        prevPageFullPath.append("/page/")
+                            .append(page)
+                            .append(pathSuffix);
+                    }
+
+                    fullPath.append(URL_SEPARATOR)
+                        .append(optionService.getCategoriesPrefix())
+                        .append(URL_SEPARATOR)
+                        .append(specialSlug);
+
+                    fullPath.append("/page/");
+
+                    for (int current : rainbow) {
+                        RainbowPage rainbowPage = new RainbowPage();
+                        rainbowPage.setPage(current);
+                        rainbowPage.setFullPath(fullPath.toString() + current + pathSuffix);
+                        rainbowPage.setIsCurrent(page + 1 == current);
+                        rainbowPages.add(rainbowPage);
+                    }
+                    break;
                 case "photos":
 
                     nextPageFullPath.append(URL_SEPARATOR)

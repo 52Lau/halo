@@ -550,7 +550,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
 
     @Override
     public String getSpecialsPrefix() {
-        return getByPropertyOrDefault(PermalinkProperties.SPECIAL_PREFIX, String.class, PermalinkProperties.SPECIAL_PREFIX.defaultValue());
+        return getByPropertyOrDefault(PermalinkProperties.SPECIALS_PREFIX, String.class, PermalinkProperties.SPECIALS_PREFIX.defaultValue());
     }
 
 
@@ -563,6 +563,12 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     public String getPathSuffix() {
         return getByPropertyOrDefault(PermalinkProperties.PATH_SUFFIX, String.class, PermalinkProperties.PATH_SUFFIX.defaultValue());
     }
+
+    @Override
+    public String getCustomCategorySuffix() {
+        return getByPropertyOrDefault(PermalinkProperties.CUSTOM_CATEGORY_SUFFIX, String.class, PermalinkProperties.CUSTOM_CATEGORY_SUFFIX.defaultValue());
+    }
+
 
     @Override
     public Boolean isEnabledAbsolutePath() {

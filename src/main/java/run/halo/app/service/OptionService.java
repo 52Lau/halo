@@ -456,6 +456,13 @@ public interface OptionService extends CrudService<Option, Integer> {
     String getPathSuffix();
 
     /**
+     * Get CustomCategory path suffix.
+     *
+     * @return path suffix.
+     */
+    String getCustomCategorySuffix();
+
+    /**
      * Is enabled absolute path.
      *
      * @return true or false.

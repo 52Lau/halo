@@ -1,5 +1,6 @@
 package run.halo.app.model.params;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -13,9 +14,7 @@ import run.halo.app.utils.SlugUtils;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +78,7 @@ public class PostParam implements InputConverter<Post> {
     @Override
     public Post convertTo() {
         slug = StringUtils.isBlank(slug) ? SlugUtils.slug(title) : SlugUtils.slug(slug);
-        if (null == thumbnail) {
+        if (null == thumbnail || "".equals(thumbnail)) {
             //get img url
             //if markdown
             String pattern = "(?:!\\[(.*?)\\]\\((.*?)\\))";
@@ -91,9 +90,17 @@ public class PostParam implements InputConverter<Post> {
             } else {
                 //html
                 pattern = "<img\\b[^<>]*?\\bsrc[\\s\\t\\r\\n]*=[\\s\\t\\r\\n]*[\"\"']?[\\s\\t\\r\\n]*(?<imgUrl>[^\\s\\t\\r\\n\"\"'<>]*)[^<>]*?/?[\\s\\t\\r\\n]*>";
+                r = Pattern.compile(pattern);
                 m = r.matcher(originalContent);
                 if (m.find()) {
                     thumbnail = m.group(0);
+                    pattern = "src=\"(.*?)\"";
+                    // pattern = "<img src=\"(.*?)\"[^>]*>";
+                    r = Pattern.compile(pattern);
+                    m = r.matcher(m.group(0));
+                    if (m.find()) {
+                        thumbnail = m.group(0).replace("src=\"","").replace("\"","");
+                    }
                 }
             }
         }

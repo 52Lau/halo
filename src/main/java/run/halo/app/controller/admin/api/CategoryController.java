@@ -43,6 +43,12 @@ public class CategoryController {
         return categoryService.convertTo(categoryService.getById(categoryId));
     }
 
+    @GetMapping("{categoryName}")
+    @ApiOperation("Gets category detail")
+    public CategoryDTO getByName(@PathVariable("categoryName") String categoryName) {
+        return categoryService.convertTo(categoryService.getByName(categoryName));
+    }
+
     @GetMapping
     @ApiOperation("Lists all categories")
     public List<? extends CategoryDTO> listAll(

@@ -3,10 +3,14 @@ package run.halo.app.service.impl;
 import cn.hutool.core.date.DateUtil;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+//import org.springframework.boot.autoconfigure.klock.annotation.Klock;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,39 +21,48 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
+import run.halo.app.cache.AbstractStringCacheStore;
+import run.halo.app.core.freemarker.tag.*;
 import run.halo.app.event.logger.LogEvent;
 import run.halo.app.event.post.PostVisitEvent;
 import run.halo.app.exception.NotFoundException;
+import run.halo.app.handler.theme.config.support.ThemeProperty;
 import run.halo.app.model.dto.post.BasePostMinimalDTO;
 import run.halo.app.model.dto.post.BasePostSimpleDTO;
 import run.halo.app.model.entity.*;
 import run.halo.app.model.enums.*;
 import run.halo.app.model.params.PostParam;
 import run.halo.app.model.params.PostQuery;
+import run.halo.app.model.properties.BlogProperties;
 import run.halo.app.model.properties.PostProperties;
+import run.halo.app.model.properties.SeoProperties;
+import run.halo.app.model.support.HaloConst;
 import run.halo.app.model.vo.*;
 import run.halo.app.repository.PostRepository;
 import run.halo.app.repository.base.BasePostRepository;
 import run.halo.app.service.*;
-import run.halo.app.utils.DateUtils;
-import run.halo.app.utils.MarkdownUtils;
-import run.halo.app.utils.ServiceUtils;
-import run.halo.app.utils.SlugUtils;
+import run.halo.app.utils.*;
 
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import javax.servlet.ServletContext;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static run.halo.app.model.support.HaloConst.URL_SEPARATOR;
 
@@ -65,6 +78,11 @@ import static run.halo.app.model.support.HaloConst.URL_SEPARATOR;
 @Slf4j
 @Service
 public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostService {
+
+    @Value("${genPostHtml.templateOutPath}")
+    public String templateOutPath;
+    @Value("${genPostHtml.expireTime}")
+    public Long expireTime;
 
     private final PostRepository postRepository;
 
@@ -89,6 +107,16 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
     private final OptionService optionService;
 
+    private final MenuService menuService;
+
+
+    private final ThemeService themeService;
+
+    private final ThemeSettingService themeSettingService;
+
+    private final AbstractStringCacheStore cacheStore;
+
+
     public PostServiceImpl(BasePostRepository<Post> basePostRepository,
                            OptionService optionService,
                            PostRepository postRepository,
@@ -98,7 +126,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
                            PostCategoryService postCategoryService,
                            PostSpecialService postSpecialService, PostCommentService postCommentService,
                            ApplicationEventPublisher eventPublisher,
-                           PostMetaService postMetaService, MenuService menuService) {
+                           PostMetaService postMetaService, ThemeService themeService, ThemeSettingService themeSettingService, MenuService menuService, AbstractStringCacheStore cacheStore) {
         super(basePostRepository, optionService);
         this.postRepository = postRepository;
         this.tagService = tagService;
@@ -111,7 +139,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         this.eventPublisher = eventPublisher;
         this.postMetaService = postMetaService;
         this.optionService = optionService;
+        this.themeService = themeService;
+        this.themeSettingService = themeSettingService;
         this.menuService = menuService;
+        this.cacheStore = cacheStore;
     }
 
     @Override
@@ -183,7 +214,6 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     public Post getBy(PostStatus status, String slug) {
         return super.getBy(status, slug);
     }
-
 
 
     @Override
@@ -997,98 +1027,104 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         return fullPath.toString();
     }
 
-    private final MenuService menuService;
+    @Override
+    public void genPostHtml(Post post, Model model) {
 
-    public void genPostHtml(String slug) {
-        Map<String, Object> map = new HashMap<>();
+        //form FreemarkerConfigAwareListener.java
+        if (null == cacheStore.get(post.getSlug()).orElse(null)) {
+            // load blog config
+            log.info("生成静态文件页面");
+            try {
+                //创建配置类
+                Configuration configuration = new Configuration(Configuration.getVersion());
 
-        map.put("blog_logo", "https://pic.cnblogs.com/avatar/1580998/20191105112733.png");
-        map.put("blog_title", "xxxxxsa大大色的啊我");
-        //查询所有菜单
-        map.put("menus", menuService.listAll());
-        //archive page most likes post
-        List<PostListVO> mostLikes = this.convertToListVo(this.listMostLike(PostNum.INDEX));
-        //archive page most visit post
-        List<PostListVO> mostVisits = this.convertToListVo(this.listMostVisit(PostNum.INDEX));
-        map.put("mostVisits", mostLikes);
-        map.put("mostLikes", mostVisits);
 
-        Post post = this.getBySlug(slug);
-        post = this.getBy(PostStatus.PUBLISHED, post.getSlug());
+                String context = optionService.isEnabledAbsolutePath() ? optionService.getBlogBaseUrl() + "/" : "/";
 
-        this.publishVisitEvent(post.getId());
+                // Get current activated theme.
+                ThemeProperty activatedTheme = themeService.getActivatedTheme();
 
-        AdjacentPostVO adjacentPostVO = this.getAdjacentPosts(post);
-        adjacentPostVO.getOptionalPrevPost().ifPresent(prevPost -> map.put("prevPost", this.convertToDetailVo(prevPost)));
-        adjacentPostVO.getOptionalNextPost().ifPresent(nextPost -> map.put("nextPost", this.convertToDetailVo(nextPost)));
+                String themeBasePath = (optionService.isEnabledAbsolutePath() ? optionService.getBlogBaseUrl() : "") + "/themes/" + activatedTheme.getFolderName();
 
-        List<Category> categories = postCategoryService.listCategoriesBy(post.getId());
-        List<Special> specials = postSpecialService.listSpecialsBy(post.getId());
-        List<Tag> tags = postTagService.listTagsBy(post.getId());
-        List<PostMeta> metas = postMetaService.listBy(post.getId());
 
-        // Generate meta keywords.
-        if (StringUtils.isNotEmpty(post.getMetaKeywords())) {
-            map.put("meta_keywords", post.getMetaKeywords());
+                model.addAttribute("theme", activatedTheme);
+
+                // TODO: It will be removed in future versions
+                model.addAttribute("static", themeBasePath);
+
+                model.addAttribute("theme_base", themeBasePath);
+
+                model.addAttribute("settings", themeSettingService.listAsMapBy(themeService.getActivatedThemeId()));
+
+
+                model.addAttribute("settings", themeSettingService.listAsMapBy(themeService.getActivatedThemeId()));
+
+                model.addAttribute("tagTag", new TagTagDirective(configuration, tagService, postTagService));
+
+                model.addAttribute("postTag", new PostTagDirective(configuration, this, postTagService, postCategoryService));
+
+                model.addAttribute("menuTag", new MenuTagDirective(configuration, menuService));
+
+                model.addAttribute("toolTag", new ToolTagDirective(configuration));
+
+                model.addAttribute("commentTag", new CommentTagDirective(configuration, postCommentService));
+
+                //数据模型
+                Map<String, Object> map = new HashMap<>();
+
+                /*String cacheMap = cacheStore.get("ifuntools_option_genhtml").orElse(null);
+                if (null == cacheMap) {*/
+                    model.addAttribute("options", optionService.listOptions());
+                    model.addAttribute("context", context);
+                    model.addAttribute("version", HaloConst.HALO_VERSION);
+
+                    model.addAttribute("globalAbsolutePathEnabled", optionService.isEnabledAbsolutePath());
+                    model.addAttribute("blog_title", optionService.getBlogTitle());
+                    model.addAttribute("blog_url", optionService.getBlogBaseUrl());
+                    model.addAttribute("blog_logo", optionService.getByPropertyOrDefault(BlogProperties.BLOG_LOGO, String.class, BlogProperties.BLOG_LOGO.defaultValue()));
+                    model.addAttribute("seo_keywords", optionService.getByPropertyOrDefault(SeoProperties.KEYWORDS, String.class, SeoProperties.KEYWORDS.defaultValue()));
+                    model.addAttribute("seo_description", optionService.getByPropertyOrDefault(SeoProperties.DESCRIPTION, String.class, SeoProperties.DESCRIPTION.defaultValue()));
+
+                    model.addAttribute("rss_url", optionService.getBlogBaseUrl() + "/rss.xml");
+                    model.addAttribute("atom_url", optionService.getBlogBaseUrl() + "/atom.xml");
+                    model.addAttribute("sitemap_xml_url", optionService.getBlogBaseUrl() + "/sitemap.xml");
+                    model.addAttribute("sitemap_html_url", optionService.getBlogBaseUrl() + "/sitemap.html");
+                    model.addAttribute("links_url", context + optionService.getLinksPrefix());
+                    model.addAttribute("photos_url", context + optionService.getPhotosPrefix());
+                    model.addAttribute("journals_url", context + optionService.getJournalsPrefix());
+                    model.addAttribute("archives_url", context + optionService.getArchivesPrefix());
+                    model.addAttribute("categories_url", context + optionService.getCategoriesPrefix());
+                    model.addAttribute("tags_url", context + optionService.getTagsPrefix());
+                    //put cache
+                /*  cacheStore.putAny("ifuntools_option_genhtml", model, 3, TimeUnit.MINUTES);
+                } else {
+                    map = (Map<String, Object>) JsonUtils.objectToMap(cacheMap);
+                    map.forEach((k, v) -> model.addAttribute(k, v));
+                }*/
+
+
+                //设置模板路径
+                configuration.setDirectoryForTemplateLoading(new File(activatedTheme.getThemePath()));
+                //设置字符集
+                //configuration.setDefaultEncoding("UTF‐8");
+                //加载模板
+                Template template = configuration.getTemplate("post.ftl");
+
+                //静态化
+                String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
+                //静态化内容
+                InputStream inputStream = IOUtils.toInputStream(content);
+                //输出文件
+                FileOutputStream fileOutputStream = new FileOutputStream(new File(templateOutPath + post.getSlug() + ".html"));
+                IOUtils.copy(inputStream, fileOutputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (TemplateException e) {
+                e.printStackTrace();
+            }
+            cacheStore.putAny(post.getSlug(), post.getSlug(), expireTime, TimeUnit.MINUTES);
         } else {
-            map.put("meta_keywords", tags.stream().map(Tag::getName).collect(Collectors.joining(",")));
-        }
-
-        // Generate meta description.
-        if (StringUtils.isNotEmpty(post.getMetaDescription())) {
-            map.put("meta_description", post.getMetaDescription());
-        } else {
-            map.put("meta_description", this.generateDescription(post.getFormatContent()));
-        }
-
-
-        map.put("is_post", true);
-        map.put("post", this.convertToDetailVo(post));
-        map.put("mostLikes", mostLikes);
-        map.put("mostVisits", mostVisits);
-        map.put("categories", categoryService.convertTo(categories));
-        map.put("specials", specialService.convertTo(specials));
-        map.put("tags", tagService.convertTo(tags));
-        map.put("metas", postMetaService.convertToMap(metas));
-
-        Map<String, Object> map1 = new HashMap<>();
-        map1.put("google_color", "#fff");
-        map.put("settings", map1);
-
-        Map<String, Object> map2 = new HashMap<>();
-        map1.put("nickname", "娃大撒打算");
-        map.put("user", map1);
-
-        map.put("theme_base", "http://ifuntools.cn");
-
-        Map<String, Object> map3 = new HashMap<>();
-        map1.put("google_color", "#fff");
-        map.put("settings", map1);
-
-
-        try {
-            //创建配置类
-            Configuration configuration = new Configuration(Configuration.getVersion());
-            //设置模板路径
-            configuration.setDirectoryForTemplateLoading(new File("/Users/lau52y/halo-dev/templates/themes/ifuntools"));
-            //设置字符集
-            configuration.setDefaultEncoding("UTF‐8");
-            //加载模板
-            Template template = configuration.getTemplate("genPosthtml.ftl");
-            //数据模型
-
-            //静态化
-            String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
-            //静态化内容
-            System.out.println(content);
-            InputStream inputStream = IOUtils.toInputStream(content);
-            //输出文件
-            FileOutputStream fileOutputStream = new FileOutputStream(new File("/Users/lau52y/halo-dev/templates/themes/ifuntools/" + slug + ".html"));
-            int copy = IOUtils.copy(inputStream, fileOutputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TemplateException e) {
-            e.printStackTrace();
+            log.warn("存在静态文件页面");
         }
 
     }

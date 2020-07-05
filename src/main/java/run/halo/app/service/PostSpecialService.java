@@ -160,4 +160,23 @@ public interface PostSpecialService extends CrudService<PostSpecial, Integer> {
      */
     @NonNull
     List<SpecialWithPostCountDTO> listSpecialWithPostCountDto(@NonNull Sort sort);
+
+    /**
+     * Lists IndexPriority Special.
+     *
+     * @param top top number must not be less than 0
+     * @return IndexPriority Special
+     */
+    @NonNull
+    List<Special> listIndexPriority(int top);
+
+    /**
+     * Converts to a list of Special list vo.
+     *
+     * @param specials Special must not be null
+     * @return a list of Special list vo
+     */
+    @NonNull
+    List<SpecialWithPostCountDTO> convertToListVo(@NonNull List<Special> specials);
+
 }

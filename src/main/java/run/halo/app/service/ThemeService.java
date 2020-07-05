@@ -85,6 +85,11 @@ public interface ThemeService {
     String CUSTOM_POST_PREFIX = "post_";
 
     /**
+     * Custom category template prefix.
+     */
+    String CUSTOM_CATEGORY_PREFIX = "custom_category_";
+
+    /**
      * Theme provider remote name.
      */
     String THEME_PROVIDER_REMOTE_NAME = "theme-provider";

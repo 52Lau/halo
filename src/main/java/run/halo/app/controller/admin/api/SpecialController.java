@@ -43,6 +43,12 @@ public class SpecialController {
         return specialService.convertTo(specialService.getById(specialId));
     }
 
+    @GetMapping("{specialName}")
+    @ApiOperation("Gets special detail")
+    public SpecialDTO getByName(@PathVariable("specialName") String specialName) {
+        return specialService.convertTo(specialService.getByName(specialName));
+    }
+
     @GetMapping
     @ApiOperation("Lists all specials")
     public List<? extends SpecialDTO> listAll(

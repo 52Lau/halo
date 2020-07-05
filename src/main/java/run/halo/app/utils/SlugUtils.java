@@ -54,7 +54,7 @@ public class SlugUtils {
     public static String slug(@NonNull String input) {
         Assert.hasText(input, "Input string must not be blank");
         //Call Baidu TransApi
-        TransApi api = new TransApi(APP_ID, SECURITY_KEY);
+        /*TransApi api = new TransApi(APP_ID, SECURITY_KEY);
         Map mapType = JSON.parseObject(api.getTransResult(input, "auto", "en"), Map.class);
         if (null != mapType.get("error_msg")) {
             throw new AlreadyExistsException("TransApi error");
@@ -62,12 +62,13 @@ public class SlugUtils {
         for (Object object : (JSONArray) mapType.get("trans_result")) {
             Map map = JSON.parseObject(String.valueOf(object), Map.class);
             input = (String) map.get("dst");
-        }
-        String slug = input.
+        }*/
+        String slug = input;
+        /*String slug = input.
             replaceAll("[^(a-zA-Z0-9\\u4e00-\\u9fa5\\.\\-)]", "").
             replaceAll("[\\?\\\\/:|<>\\*\\[\\]\\(\\)\\$%\\{\\}@~\\.]", "").
             replaceAll("\\s", "")
-            .toLowerCase(Locale.ENGLISH);
+            .toLowerCase(Locale.ENGLISH);*/
         return StringUtils.isNotEmpty(slug) ? slug : String.valueOf(System.currentTimeMillis());
     }
 }
