@@ -23,9 +23,9 @@ spring:
   h2:
     console:
       settings:
-        web-allow-others: false
+        web-allow-others: true
       path: /h2-console
-      enabled: false
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -52,3 +52,7 @@ logging:
 
 halo:
   download-timeout: 5m
+
+genPostHtml:
+  templateOutPath: /usr/local/var/www/archives/
+  expireTime: 600

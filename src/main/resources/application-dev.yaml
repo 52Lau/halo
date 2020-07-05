@@ -20,7 +20,7 @@ spring:
 
     # MySQL database configuration.
 #    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://47.93.63.105:3306/halo_dev?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+#    url: jdbc:mysql://221.229.166.178:3306/halo_dev?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
 #    username: lau52y
 #    password: seeyouagain
 
@@ -43,6 +43,16 @@ spring:
       max-request-size: 10240MB
   cache:
     type: none
+
+
+#  klock:
+#    address: 106.54.74.186
+#    port: 6379
+#    database: 1
+#    leaseTime: 60
+#    password: '123456'
+#    waitTime: 60
+
 management:
   endpoints:
     web:
@@ -69,3 +79,8 @@ halo:
 BAIDU:
   APP_ID: 20190505000294049
   SECURITY_KEY: OirzHFsAd3YwNsnlrg16
+
+
+genPostHtml:
+  templateOutPath: /usr/local/var/www/archives/
+  expireTime: 600

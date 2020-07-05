@@ -1,0 +1,194 @@
+indexsetts:
+  label: 首页设置
+  items:
+    index_right_carousel_images:
+      name: index_right_carousel_images
+      label: 首页轮播右侧图片
+      type: text
+      placeholder: ''
+      default: 'https://img.ifuntools.cn/images/1565232440252.png'
+      description: '首页轮播右侧图片'
+    index_right_carousel_url:
+      name: index_right_carousel_url
+      label: 首页轮播右侧链接
+      type: text
+      placeholder: ''
+      default: 'www.baidu.com'
+      description: '首页轮播右侧链接'
+    footer_title:
+      name: footer_title
+      label: 页脚左侧标题
+      type: textarea
+      placeholder: ''
+      default: '声明'
+      description: '标题'
+    footer_description:
+      name: footer_description
+      label: 页脚左侧内容
+      type: textarea
+      placeholder: ''
+      default: ''
+      description: '支持html，一般为网站的声明内容'
+    footer_copyright:
+      name: copyright
+      label: 网页底部备案号
+      type: textarea
+      placeholder: '支持html'
+      default: ''
+      description: ''
+
+style:
+  label: 样式设置
+  items:
+    switchDarkMode:
+      name: switchDarkMode
+      label: 切换浅色深色主题
+      type: select
+      default: 自动切换
+      options:
+        - value:
+          label: 自动切换
+        - value: nice-dark-mode
+          label: 深色
+        - value: hello word
+          label: 浅色
+    Dark_Logo:
+      name: Dark_Logo
+      label: 白色背景Logo
+      type: text
+      placeholder: '在白色背景下显示的的logo url'
+    Light_Logo:
+      name: Light_Logo
+      label: 黑色背景Logo
+      type: text
+      placeholder: '在黑色背景下显示的的logo url'
+    icon_Logo:
+      name: icon_Logo
+      label: icon_Logo
+      type: text
+      placeholder: '网站icon_Logo'
+    default_posts_img:
+      name: default_posts_img
+      label: 默认文章的图片
+      type: text
+      placeholder: '默认文章的图片'
+    search_bg_img:
+      name: search_bg_img
+      label: '搜索页面背景图'
+      type: text
+      placeholder: '默认文章的图片'
+    hitokoto:
+      name: hitokoto
+      label: 博客描述开启一言
+      type: radio
+      data-type: bool
+      default: false
+      options:
+        - value: true
+          label: 开启
+        - value: false
+          label: 关闭
+    custom:
+      name: custom
+      label: 自定义样式
+      type: textarea
+      placeholder: '不需要 <style></style> 标签'
+
+sns:
+  label: 社交资料
+  items:
+    rss:
+      name: rss
+      label: RSS
+      type: radio
+      data-type: bool
+      default: true
+      options:
+        - value: true
+          label: 开启
+        - value: false
+          label: 关闭
+    twitter:
+      name: twitter
+      label: Twitter
+      type: text
+      placeholder: '只需填入 Twitter 用户名即可'
+    facebook:
+      name: facebook
+      label: Facebook
+      type: text
+      placeholder: '只需填入 Facebook 用户名即可'
+    instagram:
+      name: instagram
+      label: Instagram
+      type: text
+      placeholder: '只需填入 Instagram 用户名即可'
+    dribbble:
+      name: dribbble
+      label: Dribbble
+      type: text
+      placeholder: '只需填入 Dribbble 用户名即可'
+    weibo:
+      name: weibo
+      label: 微博
+      type: text
+      placeholder: '只需填入微博 Id 即可'
+    email:
+      name: email
+      label: Email
+      type: text
+      placeholder: '只需填入邮箱地址即可'
+    github:
+      name: github
+      label: Github
+      type: text
+      placeholder: '只需填入 Github 用户名即可'
+    qq:
+      name: qq
+      label: QQ
+      type: text
+      placeholder: '只需填入 QQ 号即可'
+    telegram:
+      name: telegram
+      label: Telegram
+      type: text
+      placeholder: '只需填入 Telegram Id 即可'
+
+other:
+  label: 其他设置
+  items:
+    baidu_push:
+      name: baidu_push
+      label: 百度自动提交
+      type: radio
+      data-type: bool
+      default: false
+      options:
+        - value: true
+          label: 开启
+        - value: false
+          label: 关闭
+    post_copyright:
+      name: post_copyright
+      label: 文章版权信息显示
+      type: radio
+      data-type: bool
+      default: true
+      options:
+        - value: true
+          label: 开启
+        - value: false
+          label: 关闭
+    post_copyright_license:
+      name: post_copyright_license
+      label: 文章版权信息
+      type: text
+      default: 'CC BY-NC-SA 3.0'
+    post_copyright_license_url:
+      name: post_copyright_license_url
+      label: 文章版权链接
+      type: text
+      default: 'https://creativecommons.org/licenses/by-nc-sa/3.0/'
+
+
+
